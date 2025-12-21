@@ -1,18 +1,132 @@
-Markdown# GrindMap 🚀
+# GrindMap 🚀
 
-**GrindMap** is a modern, all-in-one coding progress tracker that lets you monitor your performance across multiple competitive programming platforms in one beautiful dashboard.
+<div align="center">
 
+**Your All-in-One Streak and Consistency Assistant**
 
+Effortlessly manage progress across competitive programming platforms.
 
-## Features
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=102)](https://github.com/Yugenjr/GrindMap)
+[![GitHub Stars](https://img.shields.io/github/stars/Yugenjr/GrindMap?style=social)](https://github.com/Yugenjr/GrindMap)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-- **Multi-platform support**: LeetCode, Codeforces, CodeChef (more coming soon!)
-- **Real-time stats fetching** using public APIs
-- **Overall progress circle** showing total problems solved across all platforms
-- **Individual platform cards** with:
-  - Circular progress ring (platform-specific)
-  - Quick stats summary
-  - Expandable detailed view (including submission heatmap for LeetCode)
-- **Today's Activity tracker** – see at a glance which platforms you coded on today
-- **Clean, responsive, and visually appealing UI**
-- Fully frontend — no backend required
+[Live Demo](#) • [Documentation](#) • [Contributing](#contributing) • [Issues](../../issues)
+
+</div>
+
+---
+
+## ✨ Features
+
+- 🎯 **Multi-Platform Support**: Track progress on LeetCode, CodeForces, CodeChef, and more
+- ⚡ **Real-time Stats**: Fetch live statistics using official platform APIs
+- 📊 **Progress Visualization**: Beautiful circular progress rings for each platform
+- 📈 **Performance Analytics**: Overall progress dashboard across all platforms
+- 🔥 **Streak Tracking**: Monitor your daily coding consistency
+- 🎨 **Beautiful UI**: Modern, responsive interface built with React
+- 🔧 **Customizable**: Easy to extend and customize for your needs
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Yugenjr/GrindMap.git
+cd GrindMap
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm start
+```
+
+## 📁 Project Structure
+
+```
+GrindMap/
+├── frontend/          # React-based user interface
+├── backend/           # Node.js server and APIs
+├── README.md          # This file
+└── .gitignore         # Git ignore rules
+```
+
+## 🤝 Contributing
+
+We welcome contributions from the community! Whether it's bug fixes, new features, or documentation improvements, your help makes GrindMap better.
+
+### Getting Started
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/AmazingFeature`
+3. **Commit** your changes: `git commit -m 'Add AmazingFeature'`
+4. **Push** to the branch: `git push origin feature/AmazingFeature`
+5. **Open** a Pull Request
+
+### Good First Issues
+
+Looking to contribute? Check out our [Good First Issues](../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) - perfect for first-time contributors!
+
+### Areas We Need Help With
+
+- 🐛 **Bug Fixes**: Report and fix bugs you find
+- ✨ **New Features**: Suggest and implement new features
+- 📚 **Documentation**: Improve README, add tutorials, or write guides
+- 🎨 **UI/UX**: Enhance the user interface and experience
+- 🧪 **Testing**: Write unit and integration tests
+- 🌐 **Localization**: Translate the app to other languages
+
+## 📋 Development Guidelines
+
+- Follow the existing code style
+- Write meaningful commit messages
+- Add tests for new features
+- Update documentation as needed
+- Be respectful and constructive in discussions
+
+## 🐛 Reporting Issues
+
+Found a bug? Please [open an issue](../../issues/new) with:
+- Clear title and description
+- Steps to reproduce
+- Expected vs actual behavior
+- Screenshots (if applicable)
+
+## 💡 Feature Requests
+
+Have an idea? [Create a feature request](../../issues/new) and describe:
+- The problem you're trying to solve
+- Your proposed solution
+- Alternative approaches you've considered
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- LeetCode, CodeForces, and CodeChef for their amazing platforms
+- Our amazing contributors who make this project possible
+- The open-source community for inspiration and support
+
+## 📞 Questions?
+
+Feel free to reach out:
+- [GitHub Issues](../../issues)
+- Open a discussion in [GitHub Discussions](../../discussions)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by [Yugendra N](https://github.com/Yugenjr)**
+
+If you find this project helpful, please consider giving it a ⭐!
+
+</div>
