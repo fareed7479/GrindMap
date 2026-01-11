@@ -1,0 +1,92 @@
+name: Auto-Assign Issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  assign-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    
+    steps:
+      - name: Assign issue to creator
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const creator = issue.user.login;
+            
+            console.log(`Issue #${issue.number} created by ${creator}`);
+            
+            // Auto-assign to owner/maintainer
+            const assignee = 'Yugenjr';
+            
+            github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              assignees: [assignee]
+            });
+            
+            console.log(`Assigned issue #${issue.number} to ${assignee}`);
+      
+      - name: Add labels based on issue content
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const body = (issue.body || '').toLowerCase();
+            const title = (issue.title || '').toLowerCase();
+            const content = `${title} ${body}`;
+            
+            const labelsToAdd = [];
+            
+            // Categorize by keywords
+            if (content.includes('bug') || content.includes('error') || content.includes('crash')) {
+              labelsToAdd.push('bug');
+            }
+            if (content.includes('feature') || content.includes('request') || content.includes('add')) {
+              labelsToAdd.push('enhancement');
+            }
+            if (content.includes('documentation') || content.includes('docs')) {
+              labelsToAdd.push('documentation');
+            }
+            if (content.includes('urgent') || content.includes('critical')) {
+              labelsToAdd.push('urgent');
+            }
+            if (content.includes('frontend') || content.includes('ui') || content.includes('design')) {
+              labelsToAdd.push('frontend');
+            }
+            if (content.includes('backend') || content.includes('api') || content.includes('database')) {
+              labelsToAdd.push('backend');
+            }
+            
+            if (labelsToAdd.length > 0) {
+              github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labelsToAdd
+              });
+              console.log(`Added labels: ${labelsToAdd.join(', ')}`);
+            }
+      
+      - name: Comment on issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const comment = `Thanks for raising this issue! 🎉\n\nThis issue has been automatically assigned to @Yugenjr and labeled based on its content. \n\nPlease ensure you've provided:\n- ✅ A clear description of the problem\n- ✅ Steps to reproduce (for bugs)\n- ✅ Expected vs actual behavior\n- ✅ Relevant environment details\n\nWe appreciate your contribution!`;
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: comment
+            });
