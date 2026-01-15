@@ -92,6 +92,7 @@ GrindMap/
 We welcome contributions from the community! Whether it's bug fixes, new features, or documentation improvements, your help makes GrindMap better.
 
 ### Getting Started
+---
 
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/AmazingFeature`
@@ -100,10 +101,12 @@ We welcome contributions from the community! Whether it's bug fixes, new feature
 5. **Open** a Pull Request
 
 ### Good First Issues
+---
 
 Looking to contribute? Check out our [Good First Issues](../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) - perfect for first-time contributors!
 
 ### Areas We Need Help With
+---
 
 - 🐛 **Bug Fixes**: Report and fix bugs you find
 - ✨ **New Features**: Suggest and implement new features
@@ -135,6 +138,69 @@ Have an idea? [Create a feature request](../../issues/new) and describe:
 - Your proposed solution
 - Alternative approaches you've considered
 
+
+## 🏗️ Project Architecture
+
+
+GrindMap is built using a clear separation between **Frontend** and **Backend**, making
+the project scalable, maintainable, and contributor-friendly.
+
+
+### 🔙 Backend
+---
+
+The `backend/` directory handles all server-side responsibilities, including:
+
+- Fetching and processing user data (e.g., coding platform stats)
+- Scraping or integrating external platforms (like LeetCode, GitHub, etc.)
+- Managing APIs that serve data to the frontend
+- Handling business logic and data transformation
+
+The backend acts as the **brain** of the system:
+- It gathers raw data
+- Cleans and structures it
+- Exposes it through APIs for the frontend
+
+
+### 🎨 Frontend
+---
+The `frontend/` directory is responsible for:
+
+- User interface (UI)
+- Visualizing streaks, progress, and consistency
+- Displaying data received from backend APIs
+- Providing interactive components for users
+
+The frontend acts as the **face** of the system:
+- It requests data from the backend
+- Converts raw data into meaningful visuals
+- Delivers a smooth and engaging user experience
+
+
+### 🔄 Workflow Overview
+---
+
+High-level flow of the application:
+
+1. User opens the web application (Frontend)
+2. Frontend sends a request to the Backend API
+3. Backend:
+   - Fetches data from external platforms
+   - Processes and structures the data
+4. Backend returns processed data to the Frontend
+5. Frontend:
+   - Renders streaks, stats, and progress
+   - Updates UI based on received data
+
+
+### 💡 This architecture ensures
+---
+- Clear separation of concerns
+- Easier debugging and scaling
+- Smooth onboarding for new contributors
+
+
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -160,3 +226,7 @@ Feel free to reach out:
 If you find this project helpful, please consider giving it a ⭐!
 
 </div>
+
+
+
+
