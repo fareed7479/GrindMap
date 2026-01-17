@@ -138,8 +138,7 @@ function App() {
     <div className="app">
       {showDemo ? (
         <>
-          <button onClick={() => setShowDemo(false)} className="back-btn">← Back to Main</button>
-          <DemoPage />
+          <DemoPage onBack={() => setShowDemo(false)} />
         </>
       ) : (
         <>
