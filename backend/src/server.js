@@ -1,8 +1,15 @@
 import "dotenv/config";
 import express from "express";
-import mongoose from "mongoose";
 import cors from "cors";
+import mongoose from "mongoose";
+
 import { scrapeLeetCode } from "./services/scraping/leetcode.scraper.js";
+
+import { fetchCodeforcesStats } from "./services/scraping/codeforces.scraper.js";
+import { fetchCodeChefStats } from "./services/scraping/codechef.scraper.js";
+import { normalizeCodeforces } from "./services/normalization/codeforces.normalizer.js";
+import { normalizeCodeChef } from "./services/normalization/codechef.normalizer.js";
+
 import { backpressureManager } from "./utils/backpressure.util.js";
 import { rateLimiter } from "./utils/rateLimiter.util.js";
 import { memoryMonitor } from "./middlewares/memory.middleware.js";
@@ -38,6 +45,11 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", traceId: req.traceId, ...stats });
 });
 
+/**
+ * ----------------------------
+ * LeetCode API (Upstream)
+ * ----------------------------
+ */
 app.get(
   "/api/leetcode/:username",
   validate({ username: { required: true, type: "username" } }),
@@ -58,6 +70,74 @@ app.get(
       } else {
         res.status(500).json({ error: error.message, traceId: req.traceId });
       }
+    }
+  },
+);
+
+/**
+ * ----------------------------
+ * Codeforces API (Your feature)
+ * ----------------------------
+ */
+app.get(
+  "/api/codeforces/:username",
+  validate({ username: { required: true, type: "username" } }),
+  async (req, res) => {
+    try {
+      const username = req.params.username;
+
+      const raw = await backpressureManager.process(() =>
+        withTrace(req.traceId, "codeforces.scrape", () =>
+          fetchCodeforcesStats(username),
+        ),
+      );
+
+      const normalized = normalizeCodeforces({ ...raw, username });
+
+      res.json({ success: true, data: normalized, traceId: req.traceId });
+    } catch (error) {
+      let status = 500;
+      if (error.message === "Invalid username") status = 400;
+      if (error.message === "User not found") status = 404;
+      if (error.message === "Rate limited") status = 429;
+
+      res
+        .status(status)
+        .json({ success: false, error: error.message, traceId: req.traceId });
+    }
+  },
+);
+
+/**
+ * ----------------------------
+ * CodeChef API (Your feature)
+ * ----------------------------
+ */
+app.get(
+  "/api/codechef/:username",
+  validate({ username: { required: true, type: "username" } }),
+  async (req, res) => {
+    try {
+      const username = req.params.username;
+
+      const raw = await backpressureManager.process(() =>
+        withTrace(req.traceId, "codechef.scrape", () =>
+          fetchCodeChefStats(username),
+        ),
+      );
+
+      const normalized = normalizeCodeChef({ ...raw, username });
+
+      res.json({ success: true, data: normalized, traceId: req.traceId });
+    } catch (error) {
+      let status = 500;
+      if (error.message === "Invalid username") status = 400;
+      if (error.message === "User not found") status = 404;
+      if (error.message === "Rate limited") status = 429;
+
+      res
+        .status(status)
+        .json({ success: false, error: error.message, traceId: req.traceId });
     }
   },
 );
