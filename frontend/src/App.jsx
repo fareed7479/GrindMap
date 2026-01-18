@@ -40,6 +40,8 @@ function AppContent() {
 
   return (
     <div className="app">
+  <div className="container">
+
       {showDemo ? (
         <>
           <DemoPage onBack={() => setShowDemo(false)} />
@@ -161,6 +163,7 @@ function AppContent() {
                 expanded={expanded}
                 onToggle={toggleExpand}
                 percentage={getPlatformPercentage(plat.key)}
+                loading={loading}
               />
             ))}
           </div>
@@ -202,7 +205,9 @@ function AppContent() {
           </div>
         </>
       )}
-    </div>
+      </div>
+</div>
+
   );
 }
 
