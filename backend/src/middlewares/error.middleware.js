@@ -1,23 +1,39 @@
-export const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
-  
-  // Validation errors
+const errorHandler = (err, req, res, next) => {
+  let { statusCode = 500, message } = err;
+
+  // Handle specific error types
   if (err.name === 'ValidationError') {
-    return res.status(400).json({
-      error: 'Validation failed',
-      details: err.message
-    });
+    statusCode = 400;
+    message = Object.values(err.errors).map(val => val.message).join(', ');
   }
   
-  // JSON parsing errors
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({
-      error: 'Invalid JSON format'
-    });
+  if (err.code === 11000) {
+    statusCode = 400;
+    message = 'Duplicate field value entered';
   }
-  
-  // Default server error
-  res.status(500).json({
-    error: 'Internal server error'
+
+  // Log error for debugging
+  console.error(`Error ${statusCode}: ${message}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.error(err.stack);
+  }
+
+  // Send error response
+  res.status(statusCode).json({
+    success: false,
+    error: {
+      message: process.env.NODE_ENV === 'production' ? 
+        (statusCode >= 500 ? 'Internal server error' : message) : message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
   });
 };
+
+const notFound = (req, res, next) => {
+  res.status(404).json({
+    success: false,
+    error: { message: `Route ${req.originalUrl} not found` }
+  });
+};
+
+export { errorHandler, notFound };
