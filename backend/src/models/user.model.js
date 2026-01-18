@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
-
+import bcrypt from "bcryptjs";// code quality pr 
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
