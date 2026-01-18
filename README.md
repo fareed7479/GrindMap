@@ -2,6 +2,8 @@
 
 # 🚀 GrindMap
 
+*Repo ranked #19 @ECWoC 26*
+
 <img src="https://img.shields.io/badge/Track%20Your-Coding%20Journey-FF6B6B?style=for-the-badge&logo=github&logoColor=white" alt="Track Your Coding Journey" />
 
 **Your Ultimate Streak & Consistency Companion for Competitive Programming**
