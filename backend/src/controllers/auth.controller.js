@@ -178,6 +178,30 @@ class AuthController {
 
     sendSuccess(res, user, "Profile retrieved successfully");
   });
+
+  /**
+   * Update user profile
+   * @route PUT /api/auth/profile
+   */
+  updateProfile = asyncHandler(async (req, res) => {
+    const { name, bio } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, bio },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      throw new AppError(
+        "User not found", 
+        HTTP_STATUS.NOT_FOUND, 
+        ERROR_CODES.USER_NOT_FOUND
+      );
+    }
+
+    sendSuccess(res, user, "Profile updated successfully");
+  });
 }
 
 export default new AuthController();

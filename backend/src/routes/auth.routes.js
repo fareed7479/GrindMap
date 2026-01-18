@@ -52,4 +52,27 @@ router.post('/logout', protect, AuthController.logoutUser);
  */
 router.get('/profile', protect, AuthController.getUserProfile);
 
+/**
+ * @route   PUT /api/auth/profile
+ * @desc    Update user profile
+ * @access  Private
+ */
+router.put(
+  '/profile',
+  protect,
+  [
+    body('name')
+      .optional()
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('Name must be 2-50 characters long'),
+    body('bio')
+      .optional()
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage('Bio cannot exceed 500 characters')
+  ],
+  AuthController.updateProfile
+);
+
 export default router;
