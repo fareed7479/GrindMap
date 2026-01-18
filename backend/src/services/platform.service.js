@@ -5,6 +5,7 @@ import { normalizeCodeforces } from './normalization/codeforces.normalizer.js';
 import { normalizeCodeChef } from './normalization/codechef.normalizer.js';
 import { PLATFORMS, MESSAGES } from '../constants/app.constants.js';
 import { AppError, ERROR_CODES } from '../utils/appError.js';
+import CacheManager from '../utils/cacheManager.js';
 
 /**
  * Platform scraping service - handles all platform data fetching
@@ -16,16 +17,28 @@ class PlatformService {
   }
 
   /**
-   * Fetch user data from LeetCode
+   * Fetch user data from LeetCode with caching
    */
   async fetchLeetCodeData(username) {
+    const cacheKey = CacheManager.generateKey(PLATFORMS.LEETCODE, username);
+    
+    // Try cache first
+    const cached = await CacheManager.get(cacheKey);
+    if (cached) {
+      return { ...cached, fromCache: true };
+    }
+
     try {
       const data = await scrapeLeetCode(username);
-      return {
+      const result = {
         platform: PLATFORMS.LEETCODE,
         username,
         ...data,
       };
+      
+      // Cache for 5 minutes
+      await CacheManager.set(cacheKey, result, 300);
+      return result;
     } catch (error) {
       throw new AppError(
         `${MESSAGES.SCRAPING_FAILED}: LeetCode`,
@@ -36,18 +49,30 @@ class PlatformService {
   }
 
   /**
-   * Fetch user data from Codeforces
+   * Fetch user data from Codeforces with caching
    */
   async fetchCodeforcesData(username) {
+    const cacheKey = CacheManager.generateKey(PLATFORMS.CODEFORCES, username);
+    
+    // Try cache first
+    const cached = await CacheManager.get(cacheKey);
+    if (cached) {
+      return { ...cached, fromCache: true };
+    }
+
     try {
       const rawData = await fetchCodeforcesStats(username);
       const normalizedData = normalizeCodeforces({ ...rawData, username });
       
-      return {
+      const result = {
         platform: PLATFORMS.CODEFORCES,
         username,
         ...normalizedData,
       };
+      
+      // Cache for 10 minutes
+      await CacheManager.set(cacheKey, result, 600);
+      return result;
     } catch (error) {
       throw new AppError(
         `${MESSAGES.SCRAPING_FAILED}: Codeforces`,
@@ -58,18 +83,30 @@ class PlatformService {
   }
 
   /**
-   * Fetch user data from CodeChef
+   * Fetch user data from CodeChef with caching
    */
   async fetchCodeChefData(username) {
+    const cacheKey = CacheManager.generateKey(PLATFORMS.CODECHEF, username);
+    
+    // Try cache first
+    const cached = await CacheManager.get(cacheKey);
+    if (cached) {
+      return { ...cached, fromCache: true };
+    }
+
     try {
       const rawData = await fetchCodeChefStats(username);
       const normalizedData = normalizeCodeChef({ ...rawData, username });
       
-      return {
+      const result = {
         platform: PLATFORMS.CODECHEF,
         username,
         ...normalizedData,
       };
+      
+      // Cache for 10 minutes
+      await CacheManager.set(cacheKey, result, 600);
+      return result;
     } catch (error) {
       throw new AppError(
         `${MESSAGES.SCRAPING_FAILED}: CodeChef`,
@@ -84,6 +121,19 @@ class PlatformService {
    */
   getSupportedPlatforms() {
     return Object.values(PLATFORMS);
+  }
+
+  /**
+   * Invalidate cache for user
+   */
+  async invalidateUserCache(username) {
+    const platforms = Object.values(PLATFORMS);
+    const promises = platforms.map(platform => {
+      const cacheKey = CacheManager.generateKey(platform, username);
+      return CacheManager.del(cacheKey);
+    });
+    
+    await Promise.all(promises);
   }
 
   /**
