@@ -7,6 +7,15 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     bio: { type: String, default: "" },
+    // Achievement system fields
+    totalPoints: { type: Number, default: 0 },
+    badgeCount: { type: Number, default: 0 },
+    // User stats for badge calculations
+    totalProblemsSolved: { type: Number, default: 0 },
+    currentStreak: { type: Number, default: 0 },
+    longestStreak: { type: Number, default: 0 },
+    averageRating: { type: Number, default: 0 },
+    fastestSolveTime: { type: Number, default: null }, // in milliseconds
   },
   { timestamps: true }
 );

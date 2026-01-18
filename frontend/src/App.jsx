@@ -5,6 +5,7 @@ import CircularProgress from "./components/CircularProgress";
 import DemoPage from "./components/DemoPage";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import BadgeCollection from "./components/BadgeCollection";
+import GoalDashboard from "./components/GoalDashboard";
 import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
 import { useGrindMapData } from "./hooks/useGrindMapData";
@@ -14,6 +15,7 @@ function App() {
   const [showDemo, setShowDemo] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
   const {
@@ -53,6 +55,13 @@ function App() {
             ← Back to Main
           </button>
           <BadgeCollection />
+        </>
+      ) : showGoals ? (
+        <>
+          <button onClick={() => setShowGoals(false)} className="back-btn">
+            ← Back to Main
+          </button>
+          <GoalDashboard />
         </>
       ) : (
         <>
@@ -97,9 +106,24 @@ function App() {
                 border: "none",
                 borderRadius: "8px",
                 cursor: "pointer",
+                marginRight: "10px",
               }}
             >
               🏆 Achievements
+            </button>
+            <button
+              onClick={() => setShowGoals(true)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "1em",
+                background: "#e74c3c",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+              }}
+            >
+              🎯 Goals
             </button>
           </div>
           <h1>GrindMap</h1>

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { corsOptions } from './config/cors.js';
+import connectDB from './config/db.js';
 import { scrapeLeetCode } from './services/scraping/leetcode.scraper.js';
 
 import { fetchCodeforcesStats } from './services/scraping/codeforces.scraper.js';
@@ -16,10 +17,16 @@ import { errorHandler } from './middlewares/error.middleware.js';
 import { tracingMiddleware } from './middlewares/tracing.middleware.js';
 import { withTrace } from './utils/serviceTracer.util.js';
 import { traceRoutes } from './routes/trace.routes.js';
+import badgeRoutes from './routes/badge.routes.js';
+import userRoutes from './routes/user.routes.js';
+import goalRoutes from './routes/goal.routes.js';
 import { gracefulShutdown } from './utils/shutdown.util.js';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// Connect to database
+connectDB();
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
@@ -129,6 +136,13 @@ app.get(
     }
   },
 );
+
+app.use('/api/badges', badgeRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/goals', goalRoutes);
+
+// Initialize trace routes
+traceRoutes(app);
 
 app.use(errorHandler);
 
