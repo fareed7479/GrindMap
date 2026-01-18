@@ -74,30 +74,45 @@ function App() {
         </>
       ) : (
         <>
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div style={{ textAlign: "center", marginBottom: "20px",background: "rgba(255, 255, 255, 0.15)",backdropFilter: "blur(8px)",height:"60px",borderRadius:"10px",display:"flex",gap:"1rem",alignItems:"center",justifyContent:"space-evenly",padding:"0.5rem 1rem" }}>
             <button
               onClick={() => setShowDemo(true)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+                e.currentTarget.style.transition = "background 0.3s ease";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
               style={{
                 padding: "10px 20px",
                 fontSize: "1em",
-                background: "#667eea",
-                color: "white",
                 border: "none",
+                background: "transparent",
+                color: "#fff",
                 borderRadius: "8px",
                 cursor: "pointer",
                 marginRight: "10px",
               }}
-            >
-              View Demo
+              >           
+                 View Demo
             </button>
+
             <button
               onClick={() => setShowAnalytics(true)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+                e.currentTarget.style.transition = "background 0.3s ease";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
               style={{
                 padding: "10px 20px",
                 fontSize: "1em",
-                background: "#4caf50",
-                color: "white",
                 border: "none",
+                background: "transparent",
+                color: "#fff",
                 borderRadius: "8px",
                 cursor: "pointer",
                 marginRight: "10px",
@@ -107,12 +122,19 @@ function App() {
             </button>
             <button
               onClick={() => setShowBadges(true)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+                e.currentTarget.style.transition = "background 0.3s ease";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
               style={{
                 padding: "10px 20px",
                 fontSize: "1em",
-                background: "#9b59b6",
-                color: "white",
                 border: "none",
+                background: "transparent",
+                color: "#fff",
                 borderRadius: "8px",
                 cursor: "pointer",
                 marginRight: "10px",
@@ -122,12 +144,19 @@ function App() {
             </button>
             <button
               onClick={() => setShowLeaderboard(true)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+                e.currentTarget.style.transition = "background 0.3s ease";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
               style={{
                 padding: "10px 20px",
                 fontSize: "1em",
-                background: "#e74c3c",
-                color: "white",
                 border: "none",
+                background: "transparent",
+                color: "#fff",
                 borderRadius: "8px",
                 cursor: "pointer",
                 marginRight: "10px",
@@ -137,13 +166,20 @@ function App() {
             </button>
             <button
               onClick={() => setShowFriends(true)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+                e.currentTarget.style.transition = "background 0.3s ease";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
               style={{
                 padding: "10px 20px",
                 fontSize: "1em",
-                background: "#3498db",
-                color: "white",
                 border: "none",
                 borderRadius: "8px",
+                background: "transparent",
+                color: "#fff",
                 cursor: "pointer",
                 marginRight: "10px",
               }}
@@ -152,13 +188,20 @@ function App() {
             </button>
             <button
               onClick={() => setShowProfile(true)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+                e.currentTarget.style.transition = "background 0.3s ease";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
               style={{
                 padding: "10px 20px",
                 fontSize: "1em",
-                background: "#f39c12",
-                color: "white",
                 border: "none",
                 borderRadius: "8px",
+                background: "transparent",
+                color: "#fff",
                 cursor: "pointer",
               }}
             >
