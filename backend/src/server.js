@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import { corsOptions } from './config/cors.js';
 import { scrapeLeetCode } from './services/scraping/leetcode.scraper.js';
+import { errorHandler, notFound } from './middlewares/error.middleware.js';
+import { asyncHandler } from './utils/asyncHandler.js';
+import { AppError } from './utils/appError.js';
 
 import { fetchCodeforcesStats } from './services/scraping/codeforces.scraper.js';
 import { fetchCodeChefStats } from './services/scraping/codechef.scraper.js';
@@ -24,13 +27,34 @@ const PORT = process.env.PORT || 5001;
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 
-app.get('/api/leetcode/:username', async (req, res) => {
-  try {
-    const data = await scrapeLeetCode(req.params.username);
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+app.get('/api/leetcode/:username', asyncHandler(async (req, res) => {
+  const { username } = req.params;
+  
+  if (!username || username.trim() === '') {
+    throw new AppError('Username is required', 400);
   }
+  
+  const data = await scrapeLeetCode(username);
+  
+  res.json({
+    success: true,
+    data
+  });
+}));
+
+app.use(notFound);
+app.use(errorHandler);
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Promise Rejection:', err.message);
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err.message);
+  process.exit(1);
 });
 
 /**
