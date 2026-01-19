@@ -15,12 +15,14 @@ import passport from 'passport';
 import configurePassport from './config/passport.js';
 import DistributedSessionManager from './utils/distributedSessionManager.js';
 import WebSocketManager from './utils/websocketManager.js';
+import BatchProcessingService from './services/batchProcessing.service.js';
 
 // Import routes
 import scrapeRoutes from './routes/scrape.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import cacheRoutes from './routes/cache.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
 
 // Import constants
 import { HTTP_STATUS, ENVIRONMENTS } from './constants/app.constants.js';
@@ -28,11 +30,14 @@ import Logger from './utils/logger.js';
 
 const app = express();
 const server = createServer(app);
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
 
 // Initialize WebSocket server
 WebSocketManager.initialize(server);
+
+// Start batch processing scheduler
+BatchProcessingService.startScheduler();
 
 // Request tracking and monitoring (first)
 app.use(correlationId);
@@ -83,6 +88,7 @@ app.use('/api/scrape', scrapeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/cache', cacheRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -94,6 +100,8 @@ app.get('/api', (req, res) => {
       scraping: '/api/scrape',
       authentication: '/api/auth',
       cache: '/api/cache',
+      notifications: '/api/notifications',
+      analytics: '/api/analytics',
       websocket: '/ws',
       health: '/health',
     },

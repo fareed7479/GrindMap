@@ -37,8 +37,7 @@ const notificationSchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date,
-    default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    index: { expireAfterSeconds: 0 }
+    default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
   }
 }, {
   timestamps: true
@@ -47,7 +46,7 @@ const notificationSchema = new mongoose.Schema({
 // Indexes for performance
 notificationSchema.index({ userId: 1, createdAt: -1 });
 notificationSchema.index({ userId: 1, read: 1 });
-notificationSchema.index({ expiresAt: 1 });
+notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const Notification = mongoose.model('Notification', notificationSchema);
 export default Notification;

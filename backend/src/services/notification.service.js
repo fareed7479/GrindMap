@@ -40,18 +40,16 @@ class NotificationService {
    */
   sendRealTimeNotification(userId, notification, preferences) {
     const notificationData = {
-      type: 'notification',
       id: notification._id,
-      notificationType: notification.type,
+      type: notification.type,
       title: notification.title,
       message: notification.message,
       data: notification.data,
-      timestamp: notification.createdAt,
-      sound: this.shouldPlaySound(preferences, notification.type),
-      priority: notification.priority
+      priority: notification.priority,
+      sound: this.shouldPlaySound(preferences, notification.type)
     };
 
-    WebSocketManager.sendToUser(userId, notificationData);
+    WebSocketManager.sendNotificationToUser(userId, notificationData);
   }
 
   /**
