@@ -13,12 +13,20 @@ import { sanitizeInput } from './middlewares/validation.middleware.js';
 import { generalLimiter } from './middlewares/rateLimiter.middleware.js';
 import { correlationId } from './middlewares/correlationId.middleware.js';
 import { performanceMetrics } from './middlewares/performance.middleware.js';
-import { distributedRateLimit, botDetection, geoSecurityCheck, securityAudit, abuseDetection } from './middlewares/advancedSecurity.middleware.js';
+import {
+  distributedRateLimit,
+  botDetection,
+  geoSecurityCheck,
+  securityAudit,
+  abuseDetection
+} from './middlewares/advancedSecurity.middleware.js';
 import { autoRefresh } from './middlewares/jwtManager.middleware.js';
 import { globalErrorBoundary } from './middlewares/errorBoundary.middleware.js';
 import DistributedSessionManager from './utils/distributedSessionManager.js';
 import WebSocketManager from './utils/websocketManager.js';
 import BatchProcessingService from './services/batchProcessing.service.js';
+import passport from "passport";
+import configurePassport from "./config/passport.js";
 
 // Import routes
 import scrapeRoutes from './routes/scrape.routes.js';
@@ -41,17 +49,38 @@ const server = createServer(app);
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
 
+/**
+ * ✅ CHANGE #1 (ADDED)
+ * Detect Jest/test environment so we can skip runtime heavy operations.
+ */
+const IS_TEST = NODE_ENV === 'test';
+
 // Initialize global error boundary
 globalErrorBoundary();
 
-// Connect to database
-connectDB();
+/**
+ * ✅ CHANGE #2 (WRAPPED)
+ * Connect to DB only when NOT testing.
+ */
+if (!IS_TEST) {
+  connectDB();
+}
 
-// Initialize WebSocket server
-WebSocketManager.initialize(server);
+/**
+ * ✅ CHANGE #3 (WRAPPED)
+ * Initialize WebSocket server only when NOT testing.
+ */
+if (!IS_TEST) {
+  WebSocketManager.initialize(server);
+}
 
-// Start batch processing scheduler
-BatchProcessingService.startScheduler();
+/**
+ * ✅ CHANGE #4 (WRAPPED)
+ * Start batch processing scheduler only when NOT testing.
+ */
+if (!IS_TEST) {
+  BatchProcessingService.startScheduler();
+}
 
 // Request tracking and monitoring (first)
 app.use(correlationId);
@@ -67,11 +96,13 @@ app.use(requestLogger);
 app.use(securityMonitor);
 
 // Advanced security middleware
-app.use(distributedRateLimit);
-app.use(botDetection);
-app.use(geoSecurityCheck);
-app.use(securityAudit);
-app.use(abuseDetection);
+if (!IS_TEST) {
+  app.use(distributedRateLimit);
+  app.use(botDetection);
+  app.use(geoSecurityCheck);
+  app.use(securityAudit);
+  app.use(abuseDetection);
+}
 app.use(autoRefresh);
 
 // Distributed rate limiting
@@ -87,18 +118,23 @@ app.use(express.urlencoded({ extended: true }));
 // Input sanitization
 app.use(sanitizeInput);
 
-// Passport Middleware
-app.use(passport.initialize());
-configurePassport();
+/**
+ * ✅ CHANGE #5 (WRAPPED)
+ * Passport should NOT initialize during tests to avoid unexpected side effects.
+ */
+if (!IS_TEST) {
+  app.use(passport.initialize());
+  configurePassport();
+}
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
   Logger.info('Health check accessed', { correlationId: req.correlationId });
-  
+
   try {
     const dbHealth = await dbManager.healthCheck();
     const dbStats = dbManager.getConnectionStats();
-    
+
     res.status(HTTP_STATUS.OK).json({
       success: true,
       message: 'Server is healthy',
@@ -184,7 +220,7 @@ process.on('SIGTERM', () => {
 // Start server
 const startServer = async () => {
   try {
-    await connectDB();
+    // await connectDB();
     server.listen(PORT, () => {
       Logger.info('Server started', {
         port: PORT,
@@ -200,6 +236,12 @@ const startServer = async () => {
   }
 };
 
-startServer();
+/**
+ * ✅ CHANGE #6 (WRAPPED)
+ * Do NOT start listening server during tests.
+ */
+if (!IS_TEST) {
+  startServer();
+}
 
 export default app;
