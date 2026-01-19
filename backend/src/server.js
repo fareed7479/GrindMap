@@ -19,15 +19,18 @@ import { globalErrorBoundary } from './middlewares/errorBoundary.middleware.js';
 import DistributedSessionManager from './utils/distributedSessionManager.js';
 import WebSocketManager from './utils/websocketManager.js';
 import BatchProcessingService from './services/batchProcessing.service.js';
+import CacheWarmingService from './utils/cacheWarmingService.js';
 
 // Import routes
 import scrapeRoutes from './routes/scrape.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import cacheRoutes from './routes/cache.routes.js';
+import advancedCacheRoutes from './routes/advancedCache.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import securityRoutes from './routes/security.routes.js';
 import databaseRoutes from './routes/database.routes.js';
+import websocketRoutes from './routes/websocket.routes.js';
 
 // Import secure logger to prevent JWT exposure
 import './utils/secureLogger.js';
@@ -52,6 +55,9 @@ WebSocketManager.initialize(server);
 
 // Start batch processing scheduler
 BatchProcessingService.startScheduler();
+
+// Start cache warming service
+CacheWarmingService.startDefaultSchedules();
 
 // Request tracking and monitoring (first)
 app.use(correlationId);
@@ -125,10 +131,12 @@ app.get('/health', async (req, res) => {
 app.use('/api/scrape', scrapeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/cache', cacheRoutes);
+app.use('/api/advanced-cache', advancedCacheRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/database', databaseRoutes);
+app.use('/api/websocket', websocketRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -140,9 +148,11 @@ app.get('/api', (req, res) => {
       scraping: '/api/scrape',
       authentication: '/api/auth',
       cache: '/api/cache',
+      advancedCache: '/api/advanced-cache',
       notifications: '/api/notifications',
       analytics: '/api/analytics',
       websocket: '/ws',
+      websocketAPI: '/api/websocket',
       health: '/health',
       database: '/api/database'
     },
