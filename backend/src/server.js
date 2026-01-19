@@ -20,6 +20,9 @@ import DistributedSessionManager from './utils/distributedSessionManager.js';
 import WebSocketManager from './utils/websocketManager.js';
 import BatchProcessingService from './services/batchProcessing.service.js';
 import CacheWarmingService from './utils/cacheWarmingService.js';
+import JobQueue from './services/jobQueue.service.js';
+import CronScheduler from './services/cronScheduler.service.js';
+import JobHandlers from './services/jobHandlers.service.js';
 
 // Import routes
 import scrapeRoutes from './routes/scrape.routes.js';
@@ -32,6 +35,7 @@ import securityRoutes from './routes/security.routes.js';
 import databaseRoutes from './routes/database.routes.js';
 import websocketRoutes from './routes/websocket.routes.js';
 import quotaRoutes from './routes/quota.routes.js';
+import jobsRoutes from './routes/jobs.routes.js';
 
 // Import secure logger to prevent JWT exposure
 import './utils/secureLogger.js';
@@ -59,6 +63,20 @@ BatchProcessingService.startScheduler();
 
 // Start cache warming service
 CacheWarmingService.startDefaultSchedules();
+
+// Register job handlers
+JobQueue.registerHandler('scraping', JobHandlers.handleScraping);
+JobQueue.registerHandler('cache_warmup', JobHandlers.handleCacheWarmup);
+JobQueue.registerHandler('analytics', JobHandlers.handleAnalytics);
+JobQueue.registerHandler('notification', JobHandlers.handleNotification);
+JobQueue.registerHandler('cleanup', JobHandlers.handleCleanup);
+JobQueue.registerHandler('export', JobHandlers.handleExport);
+
+// Start job processing
+JobQueue.startProcessing({ concurrency: 3, types: [] });
+
+// Start cron scheduler
+CronScheduler.start();
 
 // Request tracking and monitoring (first)
 app.use(correlationId);
@@ -139,6 +157,7 @@ app.use('/api/security', securityRoutes);
 app.use('/api/database', databaseRoutes);
 app.use('/api/websocket', websocketRoutes);
 app.use('/api/quota', quotaRoutes);
+app.use('/api/jobs', jobsRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -156,6 +175,7 @@ app.get('/api', (req, res) => {
       websocket: '/ws',
       websocketAPI: '/api/websocket',
       quota: '/api/quota',
+      jobs: '/api/jobs',
       health: '/health',
       database: '/api/database'
     },
