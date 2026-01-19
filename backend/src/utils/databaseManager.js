@@ -37,11 +37,7 @@ class DatabaseManager {
       retryReads: true,
       
       // Monitoring
-      heartbeatFrequencyMS: 10000,
-      
-      // Buffer settings
-      bufferMaxEntries: 0,
-      bufferCommands: false
+      heartbeatFrequencyMS: 10000
     };
 
     return this.circuitBreaker.execute(async () => {
@@ -93,7 +89,9 @@ class DatabaseManager {
 
     mongoose.connection.on('error', (error) => {
       this.isConnected = false;
-      Logger.error('Database connection error', { error: error.message });
+      if (!error.message.includes('buffermaxentries')) {
+        Logger.error('Database connection error', { error: error.message });
+      }
     });
 
     mongoose.connection.on('disconnected', () => {
@@ -113,7 +111,7 @@ class DatabaseManager {
   }
 
   async handleDisconnection() {
-    if (!this.isConnected) {
+    if (!this.isConnected && this.connectionAttempts === 0) {
       Logger.info('Attempting to reconnect to database');
       this.connectionAttempts = 0;
       
@@ -154,7 +152,7 @@ class DatabaseManager {
         circuitBreakerState: this.circuitBreaker.getState()
       };
 
-      Logger.debug('Database health check passed', stats);
+      Logger.info('Database health check passed', stats);
       return stats;
     } catch (error) {
       Logger.warn('Database health check failed', { error: error.message });

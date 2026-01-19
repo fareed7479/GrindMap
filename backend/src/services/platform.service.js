@@ -9,6 +9,7 @@ import { normalizeCodeChef } from './normalization/codechef.normalizer.js';
 import { PLATFORMS, MESSAGES } from '../constants/app.constants.js';
 import { AppError, ERROR_CODES } from '../utils/appError.js';
 import redis from '../config/redis.js';
+import AdvancedCacheManager from '../utils/advancedCacheManager.js';
 import config from '../config/env.js';
 import DataChangeEmitter from '../utils/dataChangeEmitter.js';
 import NotificationService from './notification.service.js';
@@ -29,11 +30,10 @@ class PlatformService {
     const cacheKey = `platform:${PLATFORMS.LEETCODE}:${username}`;
     
     try {
-      // Try cache first
-      const cached = await redis.get(cacheKey);
+      // Use advanced cache manager
+      const cached = await AdvancedCacheManager.get(cacheKey);
       if (cached) {
-        const data = JSON.parse(cached);
-        return { ...data, fromCache: true };
+        return { ...cached, fromCache: true };
       }
     } catch (cacheError) {
       console.warn('Cache read failed for LeetCode:', cacheError.message);
@@ -47,9 +47,11 @@ class PlatformService {
         ...data,
       };
       
-      // Cache for configured TTL (15 minutes)
+      // Cache with advanced manager and tags
       try {
-        await redis.set(cacheKey, JSON.stringify(result), config.CACHE_PLATFORM_TTL);
+        await AdvancedCacheManager.set(cacheKey, result, config.CACHE_PLATFORM_TTL, {
+          tags: ['platform', 'leetcode', username]
+        });
       } catch (cacheError) {
         console.warn('Cache write failed for LeetCode:', cacheError.message);
       }
