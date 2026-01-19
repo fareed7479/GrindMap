@@ -4,6 +4,7 @@ import { validateEmail, validatePassword } from '../middlewares/validation.middl
 import { protect } from '../middlewares/auth.middleware.js';
 import { loginLimiter } from '../middlewares/rateLimiter.middleware.js';
 import { body } from 'express-validator';
+import passport from 'passport';
 
 const router = express.Router();
 
@@ -51,5 +52,23 @@ router.post('/logout', protect, AuthController.logoutUser);
  * @access  Private
  */
 router.get('/profile', protect, AuthController.getUserProfile);
+
+/**
+ * @route   GET /api/auth/github
+ * @desc    GitHub OAuth
+ * @access  Public
+ */
+router.get('/github', passport.authenticate('github', { scope: ['user:email'], session: false }));
+
+/**
+ * @route   GET /api/auth/github/callback
+ * @desc    GitHub OAuth Callback
+ * @access  Public
+ */
+router.get(
+  '/github/callback',
+  passport.authenticate('github', { session: false, failureRedirect: '/login?error=auth_failed' }),
+  AuthController.githubCallback
+);
 
 export default router;

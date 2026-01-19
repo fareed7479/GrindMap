@@ -26,6 +26,7 @@ function AppContent() {
   const [showBadges, setShowBadges] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
   const [expanded, setExpanded] = useState(null);
+  const [user, setUser] = useState(null);
 
   const {
     usernames,
@@ -37,6 +38,33 @@ function AppContent() {
     getPlatformPercentage,
     hasSubmittedToday,
   } = useGrindMapData();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const userName = params.get('name');
+
+    if (token) {
+      localStorage.setItem('authToken', token);
+      if (userName) localStorage.setItem('userName', userName);
+      setUser({ name: userName, token });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      const storedToken = localStorage.getItem('authToken');
+      const storedName = localStorage.getItem('userName');
+      if (storedToken) setUser({ name: storedName, token: storedToken });
+    }
+  }, []);
+
+  const handleLogin = () => {
+    window.location.href = 'http://localhost:5001/api/auth/github';
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userName');
+    setUser(null);
+  };
 
   const toggleExpand = (key) => {
     setExpanded(expanded === key ? null : key);
@@ -93,6 +121,29 @@ function AppContent() {
                 padding: "0.5rem 1rem"
               }}
             >
+              {user ? (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ marginRight: '10px', fontWeight: 'bold', color: '#fff' }}>👋 {user.name}</span>
+                  <button
+                    onClick={handleLogout}
+                    onMouseOver={(e) => (e.currentTarget.style.background = "rgba(231, 76, 60, 0.3)")}
+                    onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                    style={btnStyle}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleLogin}
+                  onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.2)")}
+                  onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                  style={btnStyle}
+                >
+                  🐙 GitHub Login
+                </button>
+              )}
+
               <button
                 onClick={() => setShowDemo(true)}
                 onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.2)")}
@@ -183,21 +234,20 @@ function AppContent() {
                   return (
                     <div
                       key={plat.key}
-                      className={`activity-item ${
-                        submittedToday
-                          ? "done"
-                          : hasData
+                      className={`activity-item ${submittedToday
+                        ? "done"
+                        : hasData
                           ? "active-no-sub"
                           : "missed"
-                      }`}
+                        }`}
                     >
                       <span>{plat.name}</span>
                       <span>
                         {submittedToday
                           ? "✅ Coded Today"
                           : hasData
-                          ? "✅ Active (No submission today)"
-                          : "❌ No Data"}
+                            ? "✅ Active (No submission today)"
+                            : "❌ No Data"}
                       </span>
                     </div>
                   );

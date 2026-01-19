@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
@@ -10,6 +11,8 @@ import { sanitizeInput } from './middlewares/validation.middleware.js';
 import { generalLimiter } from './middlewares/rateLimiter.middleware.js';
 import { correlationId } from './middlewares/correlationId.middleware.js';
 import { performanceMetrics } from './middlewares/performance.middleware.js';
+import passport from 'passport';
+import configurePassport from './config/passport.js';
 import DistributedSessionManager from './utils/distributedSessionManager.js';
 import WebSocketManager from './utils/websocketManager.js';
 
@@ -26,9 +29,6 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 5002;
 const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
-
-// Connect to database
-connectDB();
 
 // Initialize WebSocket server
 WebSocketManager.initialize(server);
@@ -58,10 +58,14 @@ app.use(express.urlencoded({ extended: true }));
 // Input sanitization
 app.use(sanitizeInput);
 
+// Passport Middleware
+app.use(passport.initialize());
+configurePassport();
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   Logger.info('Health check accessed', { correlationId: req.correlationId });
-  
+
   res.status(HTTP_STATUS.OK).json({
     success: true,
     message: 'Server is healthy',
@@ -127,14 +131,24 @@ process.on('SIGTERM', () => {
 });
 
 // Start server
-server.listen(PORT, () => {
-  Logger.info('Server started', {
-    port: PORT,
-    environment: NODE_ENV,
-    healthCheck: `http://localhost:${PORT}/health`,
-    websocket: `ws://localhost:${PORT}/ws`,
-    features: ['distributed-rate-limiting', 'distributed-sessions', 'real-time-updates']
-  });
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+    server.listen(PORT, () => {
+      Logger.info('Server started', {
+        port: PORT,
+        environment: NODE_ENV,
+        healthCheck: `http://localhost:${PORT}/health`,
+        websocket: `ws://localhost:${PORT}/ws`,
+        features: ['distributed-rate-limiting', 'distributed-sessions', 'real-time-updates']
+      });
+    });
+  } catch (error) {
+    Logger.error('Failed to connect to database', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export default app;
