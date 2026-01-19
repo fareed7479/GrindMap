@@ -28,28 +28,54 @@ const ContributorsHallOfFame = ({ onBack }) => {
     }
 
     try {
-      const response = await fetch(
-        "https://api.github.com/repos/Rohanrathod7/GrindMap/contributors?per_page=100",
-      );
+      // 1. Fetch Contributors and PRs in parallel
+      const [contributorsRes, prsRes] = await Promise.all([
+        fetch(
+          "https://api.github.com/repos/Rohanrathod7/GrindMap/contributors?per_page=100",
+        ),
+        fetch(
+          "https://api.github.com/repos/Rohanrathod7/GrindMap/pulls?state=closed&per_page=100",
+        ),
+      ]);
 
-      if (!response.ok) {
+      if (!contributorsRes.ok) {
         throw new Error("Failed to fetch contributors");
       }
 
-      const data = await response.json();
+      const contributorsData = await contributorsRes.json();
+      let mergedData = contributorsData;
+
+      // 2. Process PRs (Graceful Failure)
+      if (prsRes.ok) {
+        const prsData = await prsRes.json();
+
+        // Count Merged PRs by User ID
+        const prCounts = {};
+        prsData.forEach((pr) => {
+          if (pr.merged_at && pr.user) {
+            prCounts[pr.user.id] = (prCounts[pr.user.id] || 0) + 1;
+          }
+        });
+
+        // Merge Counts
+        mergedData = contributorsData.map((contributor) => ({
+          ...contributor,
+          prCount: prCounts[contributor.id] || 0,
+        }));
+      }
 
       // Update Cache
       localStorage.setItem(
         CACHE_KEY,
         JSON.stringify({
           timestamp: new Date().getTime(),
-          data: data,
+          data: mergedData,
         }),
       );
 
-      setContributors(data);
+      setContributors(mergedData);
     } catch (err) {
-      console.error("Error fetching contributors:", err);
+      console.error("Error fetching data:", err);
       setError(
         "Could not load the Hall of Fame. Please check your connection.",
       );
@@ -133,9 +159,15 @@ const ContributorsHallOfFame = ({ onBack }) => {
                 </div>
                 <div className="contributor-info">
                   <h3>{contributor.login}</h3>
-                  <div className="contribution-badge">
-                    <span>⚡</span>
-                    <span>{contributor.contributions} Contributions</span>
+                  <div className="contribution-badges">
+                    <div className="contribution-badge">
+                      <span>⚡</span>
+                      <span>{contributor.contributions} Commits</span>
+                    </div>
+                    <div className="contribution-badge pr-badge">
+                      <span>🔀</span>
+                      <span>{contributor.prCount} PRs</span>
+                    </div>
                   </div>
                 </div>
               </a>
