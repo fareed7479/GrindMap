@@ -9,6 +9,11 @@ import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
 import ThemeToggle from "./components/ThemeToggle";
 import ContributorsHallOfFame from "./components/ContributorsHallOfFame";
+import {
+  DashboardLayout,
+  LoadingSkeleton,
+  ErrorState,
+} from "./components/dashboard";
 
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useGrindMapData } from "./hooks/useGrindMapData";
@@ -26,6 +31,7 @@ function AppContent() {
   const [showBadges, setShowBadges] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
   const [showContributors, setShowContributors] = useState(false);
+  const [showHRDashboard, setShowHRDashboard] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [user, setUser] = useState(null);
   
@@ -141,6 +147,30 @@ function AppContent() {
           </>
         ) : showContributors ? (
           <ContributorsHallOfFame onBack={() => setShowContributors(false)} />
+        ) : showHRDashboard ? (
+          <>
+            <button
+              onClick={() => setShowHRDashboard(false)}
+              className="back-btn"
+            >
+              ← Back to Main
+            </button>
+            {loading.hackerrank ? (
+              <LoadingSkeleton />
+            ) : platformData.hackerrank?.error ? (
+              <ErrorState
+                message={platformData.hackerrank.error}
+                onRetry={() => {
+                  setShowHRDashboard(false);
+                }}
+              />
+            ) : (
+              <DashboardLayout
+                data={platformData.hackerrank}
+                username={usernames.hackerrank}
+              />
+            )}
+          </>
         ) : (
           <>
             {/* Glass Hover Navbar */}
@@ -223,6 +253,19 @@ function AppContent() {
                 style={btnStyle}
               >
                 View Analytics
+              </button>
+
+              <button
+                onClick={() => setShowHRDashboard(true)}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "rgba(46,200,102,0.3)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+                style={{ ...btnStyle, border: "1px solid #2ec866" }}
+              >
+                🏅 HR Analytics
               </button>
 
               <button

@@ -429,6 +429,44 @@ body {
   border-left-color: #dc3545;
 }
 
+/* HackerRank Theme - Modern & Aesthetic */
+.platform-card.hackerrank {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(240, 253, 244, 0.8)
+  );
+  border: 1px solid rgba(46, 200, 102, 0.1);
+}
+
+.platform-card.hackerrank:hover {
+  border-color: #2ec866;
+  box-shadow:
+    0 18px 55px rgba(46, 200, 102, 0.2),
+    0 4px 12px rgba(46, 200, 102, 0.1);
+  transform: translateY(-8px) scale(1.02);
+}
+
+.platform-card.hackerrank .platform-progress text {
+  fill: #2ec866 !important;
+  font-weight: 700;
+  filter: drop-shadow(0 2px 4px rgba(46, 200, 102, 0.2));
+}
+
+.platform-card.hackerrank h3 {
+  color: #2ec866;
+  text-shadow: 0 2px 10px rgba(46, 200, 102, 0.15);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.platform-card.hackerrank .diff-item strong {
+  background: linear-gradient(135deg, #2ec866 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
 /* =========================
    ERROR + PLACEHOLDER
 ========================= */

@@ -16,7 +16,7 @@ class ScrapeController {
     const userId = req.user?.id; // Get user ID if authenticated
     const platformService = ServiceRegistry.getPlatformService();
     const data = await platformService.fetchLeetCodeData(username, userId);
-    
+
     sendSuccess(res, data, `LeetCode data fetched for ${username}`);
   });
 
@@ -28,7 +28,7 @@ class ScrapeController {
     const userId = req.user?.id; // Get user ID if authenticated
     const platformService = ServiceRegistry.getPlatformService();
     const data = await platformService.fetchCodeforcesData(username, userId);
-    
+
     sendSuccess(res, data, `Codeforces data fetched for ${username}`);
   });
 
@@ -40,7 +40,7 @@ class ScrapeController {
     const userId = req.user?.id; // Get user ID if authenticated
     const platformService = ServiceRegistry.getPlatformService();
     const data = await platformService.fetchCodeChefData(username, userId);
-    
+
     sendSuccess(res, data, `CodeChef data fetched for ${username}`);
   });
 
@@ -52,7 +52,7 @@ class ScrapeController {
     const userId = req.user?.id;
     const platformService = ServiceRegistry.getPlatformService();
     const data = await platformService.fetchAtCoderData(username, userId);
-    
+
     sendSuccess(res, data, `AtCoder data fetched for ${username}`);
   });
 
@@ -64,7 +64,7 @@ class ScrapeController {
     const userId = req.user?.id;
     const platformService = ServiceRegistry.getPlatformService();
     const data = await platformService.fetchGitHubData(username, userId);
-    
+
     sendSuccess(res, data, `GitHub data fetched for ${username}`);
   });
 
@@ -76,8 +76,20 @@ class ScrapeController {
     const userId = req.user?.id;
     const platformService = ServiceRegistry.getPlatformService();
     const data = await platformService.fetchSkillRackData(username, userId);
-    
+
     sendSuccess(res, data, `SkillRack data fetched for ${username}`);
+  });
+
+  /**
+   * Get HackerRank user statistics with real-time updates
+   */
+  getHackerRankStats = asyncHandler(async (req, res) => {
+    const { username } = req.params;
+    const userId = req.user?.id;
+    const platformService = ServiceRegistry.getPlatformService();
+    const data = await platformService.fetchHackerRankData(username, userId);
+
+    sendSuccess(res, data, `HackerRank data fetched for ${username}`);
   });
 
   /**
@@ -86,7 +98,7 @@ class ScrapeController {
   getSupportedPlatforms = asyncHandler(async (req, res) => {
     const platformService = ServiceRegistry.getPlatformService();
     const platforms = platformService.getSupportedPlatforms();
-    
+
     sendSuccess(res, { platforms }, 'Supported platforms retrieved');
   });
 }
