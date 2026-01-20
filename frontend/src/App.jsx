@@ -1,23 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import "./App.css";
 import CircularProgress from "./components/CircularProgress";
 
 import DemoPage from "./components/DemoPage";
-import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import BadgeCollection from "./components/BadgeCollection";
 import GoalDashboard from "./components/GoalDashboard";
 import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
+import ThemeToggle from "./components/ThemeToggle";
+import ContributorsHallOfFame from "./components/ContributorsHallOfFame";
+
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useGrindMapData } from "./hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "./utils/platforms";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+/* Lazy-loaded analytics dashboard */
+const AnalyticsDashboard = lazy(
+  () => import("./components/AnalyticsDashboard"),
+);
 
 function AppContent() {
   const [showDemo, setShowDemo] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
+  const [showContributors, setShowContributors] = useState(false);
   const [expanded, setExpanded] = useState(null);
+  const [user, setUser] = useState(null);
+  
+  // Dynamic overall goal with localStorage persistence
+  const [overallGoal, setOverallGoal] = useState(() => {
+    const savedGoal = localStorage.getItem('overallGoal');
+    return savedGoal ? parseInt(savedGoal, 10) : OVERALL_GOAL;
+  });
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [tempGoal, setTempGoal] = useState(overallGoal);
 
   const {
     usernames,
@@ -30,190 +48,407 @@ function AppContent() {
     hasSubmittedToday,
   } = useGrindMapData();
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const userName = params.get("name");
+
+    if (token) {
+      localStorage.setItem("authToken", token);
+      if (userName) localStorage.setItem("userName", userName);
+      setUser({ name: userName, token });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      const storedToken = localStorage.getItem("authToken");
+      const storedName = localStorage.getItem("userName");
+      if (storedToken) setUser({ name: storedName, token: storedToken });
+    }
+  }, []);
+
+  const handleLogin = () => {
+    window.location.href = "http://localhost:5001/api/auth/github";
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userName");
+    setUser(null);
+  };
+
   const toggleExpand = (key) => {
     setExpanded(expanded === key ? null : key);
   };
 
-  // Today's Activity Logic
+  const handleGoalEdit = () => {
+    setTempGoal(overallGoal);
+    setIsEditingGoal(true);
+  };
+
+  const handleGoalSave = () => {
+    if (tempGoal > 0) {
+      setOverallGoal(tempGoal);
+      localStorage.setItem('overallGoal', tempGoal.toString());
+      setIsEditingGoal(false);
+    }
+  };
+
+  const handleGoalCancel = () => {
+    setTempGoal(overallGoal);
+    setIsEditingGoal(false);
+  };
+
+  const handleGoalChange = (e) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value) && value >= 0) {
+      setTempGoal(value);
+    }
+  };
+
   const today = new Date();
 
   return (
     <div className="app">
-  <div className="container">
-
-      {showDemo ? (
-        <>
-          <DemoPage onBack={() => setShowDemo(false)} />
-        </>
-      ) : showAnalytics ? (
-        <>
-          <button onClick={() => setShowAnalytics(false)} className="back-btn">
-            ← Back to Main
-          </button>
-          <AnalyticsDashboard platformData={platformData} />
-        </>
-      ) : showBadges ? (
-        <>
-          <button onClick={() => setShowBadges(false)} className="back-btn">
-            ← Back to Main
-          </button>
-          <BadgeCollection />
-        </>
-      ) : showGoals ? (
-        <>
-          <button onClick={() => setShowGoals(false)} className="back-btn">
-            ← Back to Main
-          </button>
-          <GoalDashboard />
-        </>
-      ) : (
-        <>
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+      <div className="container">
+        {showDemo ? (
+          <>
+            <DemoPage onBack={() => setShowDemo(false)} />
+          </>
+        ) : showAnalytics ? (
+          <>
             <button
-              onClick={() => setShowDemo(true)}
+              onClick={() => setShowAnalytics(false)}
+              className="back-btn"
+            >
+              ← Back to Main
+            </button>
+            <Suspense fallback={<div>Loading analytics...</div>}>
+              <AnalyticsDashboard platformData={platformData} />
+            </Suspense>
+          </>
+        ) : showBadges ? (
+          <>
+            <button onClick={() => setShowBadges(false)} className="back-btn">
+              ← Back to Main
+            </button>
+            <BadgeCollection />
+          </>
+        ) : showGoals ? (
+          <>
+            <button onClick={() => setShowGoals(false)} className="back-btn">
+              ← Back to Main
+            </button>
+            <GoalDashboard />
+          </>
+        ) : showContributors ? (
+          <ContributorsHallOfFame onBack={() => setShowContributors(false)} />
+        ) : (
+          <>
+            {/* Glass Hover Navbar */}
+            <div
               style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#667eea",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginRight: "10px",
+                textAlign: "center",
+                marginBottom: "20px",
+                background: "rgba(255, 255, 255, 0.15)",
+                backdropFilter: "blur(8px)",
+                height: "60px",
+                borderRadius: "10px",
+                display: "flex",
+                gap: "1rem",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+                padding: "0.5rem 1rem",
               }}
             >
-              View Demo
-            </button>
-            <button
-              onClick={() => setShowAnalytics(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#4caf50",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginRight: "10px",
-              }}
-            >
-              View Analytics
-            </button>
-            <button
-              onClick={() => setShowBadges(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#9b59b6",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginRight: "10px",
-              }}
-            >
-              🏆 Achievements
-            </button>
-            <button
-              onClick={() => setShowGoals(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#e74c3c",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-              }}
-            >
-              🎯 Goals
-            </button>
-          </div>
-
-          <ThemeToggle />
-
-          <h1>GrindMap</h1>
-
-          <UsernameInputs
-            usernames={usernames}
-            onChange={handleChange}
-            onFetch={fetchAll}
-            loading={loading}
-          />
-
-          <div className="overall">
-            <h2>Overall Progress</h2>
-            <CircularProgress
-              solved={totalSolved}
-              goal={OVERALL_GOAL}
-              color="#4caf50"
-            />
-            <p>
-              {totalSolved} / {OVERALL_GOAL} problems solved
-            </p>
-          </div>
-
-          <div className="platforms-grid">
-            {PLATFORMS.map((plat) => (
-              <PlatformCard
-                key={plat.key}
-                platform={plat}
-                data={platformData[plat.key]}
-                expanded={expanded}
-                onToggle={toggleExpand}
-                percentage={getPlatformPercentage(plat.key)}
-                loading={loading}
-              />
-            ))}
-          </div>
-
-          {/* Today's Activity */}
-          <div className="today-activity">
-            <h2>
-              Today's Activity (
-              {today.toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-              )
-            </h2>
-            <div className="activity-list">
-              {PLATFORMS.map((plat) => {
-                const submittedToday = hasSubmittedToday(plat.key);
-                const hasData =
-                  platformData[plat.key] && !platformData[plat.key].error;
-
-                return (
-                  <div
-                    key={plat.key}
-                    className={`activity-item ${submittedToday ? "done" : hasData ? "active-no-sub" : "missed"}`}
+              {user ? (
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <span
+                    style={{
+                      marginRight: "10px",
+                      fontWeight: "bold",
+                      color: "#fff",
+                    }}
                   >
-                    <span>{plat.name}</span>
-                    <span>
-                      {submittedToday
-                        ? "✅ Coded Today"
-                        : hasData
-                          ? "✅ Active (No submission today)"
-                          : "❌ No Data"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
-      </div>
-</div>
+                    👋 {user.name}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.background =
+                        "rgba(231, 76, 60, 0.3)")
+                    }
+                    onMouseOut={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                    style={btnStyle}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleLogin}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
+                  style={btnStyle}
+                >
+                  🐙 GitHub Login
+                </button>
+              )}
 
+              <button
+                onClick={() => setShowDemo(true)}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+                style={btnStyle}
+              >
+                View Demo
+              </button>
+
+              <button
+                onClick={() => setShowAnalytics(true)}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+                style={btnStyle}
+              >
+                View Analytics
+              </button>
+
+              <button
+                onClick={() => setShowBadges(true)}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+                style={btnStyle}
+              >
+                🏆 Achievements
+              </button>
+
+              <button
+                onClick={() => setShowGoals(true)}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+                style={btnStyle}
+              >
+                🎯 Goals
+              </button>
+              <button
+                onClick={() => setShowContributors(true)}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+                style={btnStyle}
+              >
+                👥 Contributors
+              </button>
+            </div>
+
+            <ThemeToggle />
+
+            <h1>GrindMap</h1>
+
+            <UsernameInputs
+              usernames={usernames}
+              onChange={handleChange}
+              onFetch={fetchAll}
+              loading={loading}
+            />
+
+            <div className="overall">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+                <h2 style={{ margin: 0 }}>Overall Progress</h2>
+                {!isEditingGoal && (
+                  <button
+                    onClick={handleGoalEdit}
+                    style={{
+                      padding: '5px 12px',
+                      fontSize: '0.85em',
+                      border: 'none',
+                      background: 'rgba(76, 175, 80, 0.2)',
+                      color: '#4caf50',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(76, 175, 80, 0.3)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(76, 175, 80, 0.2)'}
+                  >
+                    ✏️ Edit Goal
+                  </button>
+                )}
+              </div>
+              
+              <CircularProgress
+                solved={totalSolved}
+                goal={overallGoal}
+                color="#4caf50"
+              />
+              
+              {isEditingGoal ? (
+                <div style={{ marginTop: '15px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+                    <input
+                      type="number"
+                      min="1"
+                      value={tempGoal}
+                      onChange={handleGoalChange}
+                      style={{
+                        padding: '8px 12px',
+                        fontSize: '1em',
+                        borderRadius: '6px',
+                        border: '2px solid #4caf50',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: 'var(--theme-text)',
+                        width: '120px',
+                        textAlign: 'center',
+                      }}
+                      autoFocus
+                    />
+                    <span>problems</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                    <button
+                      onClick={handleGoalSave}
+                      style={{
+                        padding: '8px 16px',
+                        fontSize: '0.9em',
+                        border: 'none',
+                        background: '#4caf50',
+                        color: 'white',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = '#45a049'}
+                      onMouseOut={(e) => e.currentTarget.style.background = '#4caf50'}
+                    >
+                      ✓ Save
+                    </button>
+                    <button
+                      onClick={handleGoalCancel}
+                      style={{
+                        padding: '8px 16px',
+                        fontSize: '0.9em',
+                        border: 'none',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: 'var(--theme-text)',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p>
+                  {totalSolved} / {overallGoal} problems solved
+                </p>
+              )}
+            </div>
+
+            <div className="platforms-grid">
+              {PLATFORMS.map((plat) => (
+                <PlatformCard
+                  key={plat.key}
+                  platform={plat}
+                  data={platformData[plat.key]}
+                  expanded={expanded}
+                  onToggle={toggleExpand}
+                  percentage={getPlatformPercentage(plat.key)}
+                  loading={loading}
+                />
+              ))}
+            </div>
+
+            {/* Today's Activity */}
+            <div className="today-activity">
+              <h2>
+                Today's Activity (
+                {today.toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                )
+              </h2>
+              <div className="activity-list">
+                {PLATFORMS.map((plat) => {
+                  const submittedToday = hasSubmittedToday(plat.key);
+                  const hasData =
+                    platformData[plat.key] && !platformData[plat.key].error;
+
+                  return (
+                    <div
+                      key={plat.key}
+                      className={`activity-item ${
+                        submittedToday
+                          ? "done"
+                          : hasData
+                            ? "active-no-sub"
+                            : "missed"
+                      }`}
+                    >
+                      <span>{plat.name}</span>
+                      <span>
+                        {submittedToday
+                          ? "✅ Coded Today"
+                          : hasData
+                            ? "✅ Active (No submission today)"
+                            : "❌ No Data"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
+
+const btnStyle = {
+  padding: "10px 20px",
+  fontSize: "1em",
+  border: "none",
+  background: "transparent",
+  color: "#fff",
+  borderRadius: "8px",
+  cursor: "pointer",
+};
 
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }
