@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 class RequestManager {
   constructor() {
@@ -37,4 +37,4 @@ class RequestManager {
   }
 }
 
-module.exports = new RequestManager();
+export default new RequestManager();

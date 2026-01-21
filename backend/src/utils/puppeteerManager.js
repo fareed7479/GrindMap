@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+import puppeteer from 'puppeteer';
 
 class PuppeteerManager {
   constructor() {
@@ -68,4 +68,4 @@ class PuppeteerManager {
   }
 }
 
-module.exports = new PuppeteerManager();
+export default new PuppeteerManager();

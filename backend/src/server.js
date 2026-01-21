@@ -9,7 +9,7 @@ import { securityHeaders } from './middlewares/security.middleware.js';
 import { enhancedSecurityHeaders } from './middlewares/enhancedSecurity.middleware.js';
 import { requestLogger, securityMonitor } from './middlewares/logging.middleware.js';
 import { sanitizeInput } from './middlewares/validation.middleware.js';
-import { generalLimiter } from './middlewares/rateLimiter.middleware.js';
+import { advancedRateLimit } from './middlewares/antiBypassRateLimit.middleware.js';
 import { correlationId } from './middlewares/correlationId.middleware.js';
 import { performanceMetrics } from './middlewares/performance.middleware.js';
 import { distributedRateLimit, botDetection, geoSecurityCheck, securityAudit, abuseDetection } from './middlewares/advancedSecurity.middleware.js';
@@ -84,10 +84,10 @@ JobQueue.startProcessing({ concurrency: 3, types: [] });
 CronScheduler.start();
 
 // Start health monitoring
-HealthMonitor.startMonitoring(30000); // Every 30 seconds
+HealthMonitor.startMonitoring(120000); // Every 2 minutes
 
 // Start alert monitoring
-AlertManager.startMonitoring(60000); // Every minute
+AlertManager.startMonitoring(300000); // Every 5 minutes
 
 // Request tracking and monitoring (first)
 app.use(correlationId);
@@ -114,8 +114,8 @@ app.use(securityAudit);
 app.use(abuseDetection);
 app.use(autoRefresh);
 
-// Distributed rate limiting
-app.use(generalLimiter);
+// Anti-bypass rate limiting
+app.use(advancedRateLimit);
 
 // CORS configuration
 app.use(cors(corsOptions));
