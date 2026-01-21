@@ -8,8 +8,7 @@ import { normalizeCodeforces } from './normalization/codeforces.normalizer.js';
 import { normalizeCodeChef } from './normalization/codechef.normalizer.js';
 import { PLATFORMS, MESSAGES } from '../constants/app.constants.js';
 import { AppError, ERROR_CODES } from '../utils/appError.js';
-import redis from '../config/redis.js';
-import AdvancedCacheManager from '../utils/advancedCacheManager.js';
+import OptimizedCacheManager from '../utils/optimizedCache.js';
 import config from '../config/env.js';
 import DataChangeEmitter from '../utils/dataChangeEmitter.js';
 import NotificationService from './notification.service.js';
@@ -27,13 +26,12 @@ class PlatformService {
    * Fetch user data from LeetCode with caching and real-time updates
    */
   async fetchLeetCodeData(username, userId = null) {
-    const cacheKey = `platform:${PLATFORMS.LEETCODE}:${username}`;
+    const cacheKey = OptimizedCacheManager.platformKey('leetcode', username);
     
     try {
-      const cached = await redis.get(cacheKey);
+      const cached = await OptimizedCacheManager.get(cacheKey);
       if (cached) {
-        const data = JSON.parse(cached);
-        return { ...data, fromCache: true };
+        return { ...cached, fromCache: true };
       }
     } catch (cacheError) {
       console.warn('Cache read failed for LeetCode:', cacheError.message);
@@ -44,26 +42,13 @@ class PlatformService {
       const result = {
         platform: PLATFORMS.LEETCODE,
         username,
-        ...scraperResult.data,
-        fromCache: scraperResult.fromCache,
-        fromFallback: scraperResult.fromFallback
+        ...scraperResult,
       };
       
-      // Only cache if not from fallback
-      if (!scraperResult.fromFallback) {
-        try {
-          await redis.set(cacheKey, JSON.stringify(result), config.CACHE_PLATFORM_TTL);
-        } catch (cacheError) {
-          console.warn('Cache write failed for LeetCode:', cacheError.message);
-        }
-      }
+      await OptimizedCacheManager.set(cacheKey, result, 900);
       
       if (userId) {
-        try {
-          DataChangeEmitter.emitPlatformUpdate(PLATFORMS.LEETCODE, username, result, userId);
-        } catch (emitError) {
-          console.warn('Real-time update failed for LeetCode:', emitError.message);
-        }
+        DataChangeEmitter.emitPlatformUpdate(PLATFORMS.LEETCODE, username, result, userId);
       }
       
       return result;
@@ -295,13 +280,7 @@ class PlatformService {
    * Invalidate cache for user
    */
   async invalidateUserCache(username) {
-    const platforms = Object.values(PLATFORMS);
-    const promises = platforms.map(platform => {
-      const cacheKey = `platform:${platform}:${username}`;
-      return redis.del(cacheKey);
-    });
-    
-    await Promise.all(promises);
+    await OptimizedCacheManager.invalidateUser(username);
   }
 
   /**
