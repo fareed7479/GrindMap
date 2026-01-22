@@ -51,10 +51,16 @@ import './utils/secureLogger.js';
 import { HTTP_STATUS, ENVIRONMENTS } from './constants/app.constants.js';
 import Logger from './utils/logger.js';
 
+import EnvValidator from './utils/envValidator.js';
+
+// Validate environment variables before starting
+EnvValidator.validate();
+const config = EnvValidator.getConfig();
+
 const app = express();
 const server = createServer(app);
-const PORT = process.env.PORT || 8080;
-const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
+const PORT = config.port;
+const NODE_ENV = config.nodeEnv;
 
 // Initialize global error boundary
 globalErrorBoundary();
