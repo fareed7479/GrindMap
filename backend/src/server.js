@@ -53,8 +53,11 @@ import securityRoutes from './routes/security.routes.js';
 import databaseRoutes from './routes/database.routes.js';
 import websocketRoutes from './routes/websocket.routes.js';
 import quotaRoutes from './routes/quota.routes.js';
-import jobMonitoringRoutes from './routes/jobMonitoring.routes.js';
-import fileUploadRoutes from './routes/fileUpload.routes.js';
+import jobsRoutes from './routes/jobs.routes.js';
+import monitoringRoutes from './routes/monitoring.routes.js';
+import grindRoomRoutes from './routes/grindRoom.routes.js';
+import tournamentRoutes from './routes/tournament.routes.js';
+import duelRoutes from './routes/duel.routes.js';
 
 import monitoringRoutes from './routes/monitoring.routes.js';
 // Import secure logger to prevent JWT exposure
@@ -93,12 +96,14 @@ BatchProcessingService.startScheduler();
 // Start cache warming service
 CacheWarmingService.startDefaultSchedules();
 
-// Register reliable job handlers
-RobustJobQueue.registerHandler('scraping', ReliableJobHandlers.handleScraping);
-RobustJobQueue.registerHandler('cache_warmup', ReliableJobHandlers.handleCacheWarmup);
-RobustJobQueue.registerHandler('analytics', ReliableJobHandlers.handleAnalytics);
-RobustJobQueue.registerHandler('notification', ReliableJobHandlers.handleNotification);
-RobustJobQueue.registerHandler('cleanup', ReliableJobHandlers.handleCleanup);
+// Register job handlers
+JobQueue.registerHandler('scraping', JobHandlers.handleScraping);
+JobQueue.registerHandler('cache_warmup', JobHandlers.handleCacheWarmup);
+JobQueue.registerHandler('analytics', JobHandlers.handleAnalytics);
+JobQueue.registerHandler('notification', JobHandlers.handleNotification);
+JobQueue.registerHandler('cleanup', JobHandlers.handleCleanup);
+JobQueue.registerHandler('export', JobHandlers.handleExport);
+JobQueue.registerHandler('integrity', JobHandlers.handleIntegrity);
 
 // Start robust job processing
 RobustJobQueue.startProcessing();
@@ -204,7 +209,9 @@ app.use('/api/quota', quotaRoutes);
 app.use('/api/upload', fileUploadRoutes);
 app.use('/api/job-monitoring', jobMonitoringRoutes);
 app.use('/api/monitoring', monitoringRoutes);
-app.use('/api/sprints', sprintRoutes);
+app.use('/api/rooms', grindRoomRoutes);
+app.use('/api/tournaments', tournamentRoutes);
+app.use('/api/duels', duelRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -224,7 +231,8 @@ app.get('/api', (req, res) => {
       quota: '/api/quota',
       jobs: '/api/jobs',
       monitoring: '/api/monitoring',
-      sprints: '/api/sprints',
+      tournaments: '/api/tournaments',
+      duels: '/api/duels',
       health: '/health',
       database: '/api/database',
     },
