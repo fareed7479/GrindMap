@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
-import connectDB from './config/db.js';
+import DatabasePoolMonitor from './utils/databasePoolMonitor.js';
 import dbManager from './utils/databaseManager.js';
 import { corsOptions } from './config/cors.js';
 import passport from 'passport';
@@ -72,8 +72,11 @@ const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
 // Initialize global error boundary
 globalErrorBoundary();
 
-// Connect to database
-// Connect to database removed (handled in startServer)
+// Connect to database with pooling
+connectDB();
+
+// Start database pool monitoring
+DatabasePoolMonitor.startMonitoring(60000);
 
 // Initialize WebSocket server
 WebSocketManager.initialize(server);
