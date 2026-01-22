@@ -1,3 +1,4 @@
+import { createErrorResponse, createSuccessResponse, ERROR_CODES } from '../utils/standardResponse.js';
 import { scrapeLeetCode } from './scraping/leetcode.scraper.js';
 import { fetchCodeforcesStats } from './scraping/codeforces.scraper.js';
 import { fetchCodeChefStats } from './scraping/codechef.scraper.js';
@@ -51,10 +52,10 @@ class PlatformService {
       
       return result;
     } catch (error) {
-      throw new AppError(
-        `${MESSAGES.SCRAPING_FAILED}: LeetCode - ${error.message}`,
-        500,
-        ERROR_CODES.SCRAPING_ERROR
+      throw createErrorResponse(
+        `Failed to fetch LeetCode data: ${error.message}`,
+        ERROR_CODES.SCRAPING_FAILED,
+        500
       );
     }
   }

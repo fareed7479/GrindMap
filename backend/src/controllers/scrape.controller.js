@@ -1,5 +1,5 @@
 import ServiceRegistry from '../services/serviceRegistry.js';
-import { sendSuccess, sendError } from '../utils/response.helper.js';
+import { createSuccessResponse, createErrorResponse } from '../utils/standardResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { MESSAGES } from '../constants/app.constants.js';
 import InputValidator from '../utils/inputValidator.js';
@@ -25,7 +25,7 @@ class ScrapeController {
       const platformService = ServiceRegistry.getPlatformService();
       const data = await platformService.fetchLeetCodeData(validatedUsername, userId);
       
-      sendSuccess(res, data, `LeetCode data fetched for ${validatedUsername}`);
+      res.json(createSuccessResponse(data, `LeetCode data fetched for ${validatedUsername}`));
     } catch (error) {
       Logger.error('LeetCode controller error', {
         username,
@@ -52,7 +52,7 @@ class ScrapeController {
       const platformService = ServiceRegistry.getPlatformService();
       const data = await platformService.fetchCodeforcesData(validatedUsername, userId);
       
-      sendSuccess(res, data, `Codeforces data fetched for ${validatedUsername}`);
+      res.json(createSuccessResponse(data, `Codeforces data fetched for ${validatedUsername}`));
     } catch (error) {
       Logger.error('Codeforces controller error', {
         username,
@@ -78,7 +78,7 @@ class ScrapeController {
       const platformService = ServiceRegistry.getPlatformService();
       const data = await platformService.fetchCodeChefData(validatedUsername, userId);
       
-      sendSuccess(res, data, `CodeChef data fetched for ${validatedUsername}`);
+      res.json(createSuccessResponse(data, `CodeChef data fetched for ${validatedUsername}`));
     } catch (error) {
       Logger.error('CodeChef controller error', {
         username,
@@ -177,7 +177,7 @@ class ScrapeController {
       const platformService = ServiceRegistry.getPlatformService();
       const platforms = platformService.getSupportedPlatforms();
       
-      sendSuccess(res, { platforms }, 'Supported platforms retrieved');
+      res.json(createSuccessResponse(platforms, 'Supported platforms retrieved'));
     } catch (error) {
       Logger.error('Get platforms error', { error: error.message });
       sendError(res, 'Failed to retrieve supported platforms', 500);
